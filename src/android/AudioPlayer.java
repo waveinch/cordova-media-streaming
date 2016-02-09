@@ -227,7 +227,7 @@ public class AudioPlayer implements OnCompletionListener, OnPreparedListener, On
      * Seek or jump to a new time in the track.
      */
     public void seekToPlaying(int milliseconds) {
-        if (this.readyPlayer(this.audioFile)) {
+        if (this.readyPlayer(this.audioFile) && isSeekable()) {
             this.player.seekTo(milliseconds);
             Log.d(LOG_TAG, "Send a onStatus update for the new seek");
             sendStatusChange(MEDIA_POSITION, null, (milliseconds / 1000.0f));
@@ -259,7 +259,9 @@ public class AudioPlayer implements OnCompletionListener, OnPreparedListener, On
     public void stopPlaying() {
         if ((this.state == STATE.MEDIA_RUNNING) || (this.state == STATE.MEDIA_PAUSED)) {
             this.player.pause();
-            this.player.seekTo(0);
+            if (isSeekable()) {
+              this.player.seekTo(0);
+            }
             Log.d(LOG_TAG, "stopPlaying is calling stopped");
             this.setState(STATE.MEDIA_STOPPED);
         }
@@ -440,6 +442,10 @@ public class AudioPlayer implements OnCompletionListener, OnPreparedListener, On
     public void setVolume(float volume) {
         this.player.setVolume(volume, volume);
     }
+  
+    private boolean isSeekable() {
+      return this.player != null && this.player.getDuration() != -1;
+    }
 
     /**
      * attempts to put the player in play mode
@@ -504,7 +510,9 @@ public class AudioPlayer implements OnCompletionListener, OnPreparedListener, On
                         } 
                         else {
                            //reset the audio file
-                            player.seekTo(0);
+                            if (isSeekable()) {
+                              player.seekTo(0);
+                            }
                             player.pause();
                             return true; 
                         } 
